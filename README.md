@@ -1,5 +1,6 @@
 # Collapse Properties
 
+[中文说明](./README.zh-CN.md)
 
 Collapse note properties with a command.
 
