@@ -1,7 +1,7 @@
 {
-	"name": "collapse-properties",
+	"name": "obsidian-handy-toolkit",
 	"version": "0.0.1",
-	"description": "Collapse properties in the current file with a command.",
+	"description": "A handy toolkit for Obsidian reading and editing tweaks.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",

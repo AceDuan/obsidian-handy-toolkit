@@ -19,7 +19,7 @@ jobs:
         run: |
           npm install
           npm run build # Replace with your actual build command
-          zip -r obsidian-collapse-properties.zip main.js manifest.json
+          zip -r obsidian-handy-toolkit.zip main.js manifest.json
 
       - name: Create GitHub Release
         id: create_release
@@ -40,8 +40,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./obsidian-collapse-properties.zip  # Path to the .zip file
-          asset_name: obsidian-collapse-properties.zip    # Name of the file in the release
+          asset_path: ./obsidian-handy-toolkit.zip  # Path to the .zip file
+          asset_name: obsidian-handy-toolkit.zip    # Name of the file in the release
           asset_content_type: application/zip
 
       # Upload main.js

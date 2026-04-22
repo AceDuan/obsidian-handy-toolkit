@@ -1,9 +1,9 @@
 {
-	"id": "collapse-properties",
-	"name": "Collapse Properties",
+	"id": "obsidian-handy-toolkit",
+	"name": "Obsidian Handy Toolkit",
 	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "使用命令折叠当前打开文档的属性.",
+	"description": "Obsidian 阅读与编辑体验增强工具箱.",
 	"author": "Ace Duan",
 	"authorUrl": "",
 	"fundingUrl": "",

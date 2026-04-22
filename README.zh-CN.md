@@ -1,16 +1,23 @@
-# Collapse Properties
+# Obsidian Handy Toolkit
 
 [English README](./README.md)
 
-使用命令折叠笔记属性区域。
+一个用于增强 Obsidian 阅读与编辑体验的实用工具箱。
+
+## 功能
+
+- 属性折叠：折叠当前活动文件的属性区域，并同步处理同一文件的所有已打开 Markdown 视图。
+- 首行缩进：可选启用源码模式和阅读模式的首行缩进增强。
 
 ## 行为
 
-- 为当前活动文件提供一个命令。
+- 为当前活动文件提供一个属性折叠命令。
 - 当同一个文件在多个 Markdown 视图中打开时，插件会折叠这些已打开视图中的属性区域。
 - 在阅读模式下，属性区域会立即折叠并更新显示。
 - 在源码模式下，插件会写入折叠状态，但由于 Obsidian 公共 API 的限制，界面不一定会立刻刷新。
 - 如果内部的 metadata editor 不可用，插件会回退到 Obsidian 为当前活动面板提供的内置属性折叠命令。
+- 提供一个可选的首行缩进增强功能，默认关闭。
+- 开启首行缩进后，插件会在源码模式下应用首行缩进，并处理阅读模式中由 `<br>` 分隔的段落，使拆分后的每一段都能正确缩进。
 
 ## 命令
 
@@ -19,5 +26,10 @@
 
 ## 安装
 
-- 将插件复制到你的库目录 `.obsidian/plugins/obsidian-collapse-properties` 下。
-- 在 Obsidian 中启用 `collapse-properties` 社区插件。
+- 将插件复制到你的库目录 `.obsidian/plugins/obsidian-handy-toolkit` 下。
+- 在 Obsidian 中启用 `obsidian-handy-toolkit` 社区插件。
+
+## 设置
+
+- `启用首行缩进`：默认关闭。
+- 开启后，插件会在内部接管迁移后的首行缩进逻辑，不再依赖对 Contextual Typography 插件或 Blue Topaz Custom 主题的单独修改。
