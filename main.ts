@@ -19,6 +19,11 @@ import {
 	registerImageRenameCommand,	// 注册“按正文顺序重命名当前笔记图片”命令
 } from './features/image-renamer'
 
+// 快速切换过滤功能
+import {
+	registerQuickSwitcherFilter,	// 按配置隐藏快速切换中的特定文件夹文件
+} from './features/quick-switcher-filter'
+
 // 插件设置
 import {
 	DEFAULT_SETTINGS,			// 插件默认设置
@@ -53,6 +58,7 @@ export default class ObsidianHandyToolkit extends Plugin {
 
 		registerCollapsePropertiesCommand(this)
 		registerImageRenameCommand(this)
+		registerQuickSwitcherFilter(this)
 
 		this.addSettingTab(new HandyToolkitSettingTab(this.app, this))
 	}

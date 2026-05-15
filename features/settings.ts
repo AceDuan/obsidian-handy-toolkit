@@ -3,11 +3,13 @@ import { App, Plugin, PluginSettingTab, Setting } from 'obsidian'
 // 插件设置：保存用户可控制的功能开关。
 export type HandyToolkitSettings = {
 	enableFirstLineIndent: boolean
+	quickSwitcherHiddenFolders: string
 }
 
 // 插件设置：默认关闭首行缩进增强，避免安装后改变既有显示效果。
 export const DEFAULT_SETTINGS: HandyToolkitSettings = {
 	enableFirstLineIndent: false,
+	quickSwitcherHiddenFolders: '',
 }
 
 type HandyToolkitSettingsPlugin = Plugin & {
@@ -38,6 +40,19 @@ export class HandyToolkitSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.enableFirstLineIndent)
 					.onChange(async (value) => {
 						this.plugin.settings.enableFirstLineIndent = value
+						await this.plugin.saveSettings()
+					}),
+			)
+
+		new Setting(containerEl)
+			.setName('快速切换隐藏文件夹')
+			.setDesc('使用逗号分隔库内文件夹路径；这些文件夹下的文件不会出现在快速切换结果中。')
+			.addTextArea((text) =>
+				text
+					.setPlaceholder('Archive, Templates/private')
+					.setValue(this.plugin.settings.quickSwitcherHiddenFolders)
+					.onChange(async (value) => {
+						this.plugin.settings.quickSwitcherHiddenFolders = value
 						await this.plugin.saveSettings()
 					}),
 			)
