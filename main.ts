@@ -24,6 +24,11 @@ import {
 	registerQuickSwitcherFilter,	// 按配置隐藏快速切换中的特定文件夹文件
 } from './features/quick-switcher-filter'
 
+// .gitkeep 生成功能
+import {
+	registerGitkeepCommand,	// 注册"为目录生成 .gitkeep 文件"命令
+} from './features/gitkeep'
+
 // 插件设置
 import {
 	DEFAULT_SETTINGS,			// 插件默认设置
@@ -59,6 +64,7 @@ export default class ObsidianHandyToolkit extends Plugin {
 		registerCollapsePropertiesCommand(this)
 		registerImageRenameCommand(this)
 		registerQuickSwitcherFilter(this)
+		registerGitkeepCommand(this)
 
 		this.addSettingTab(new HandyToolkitSettingTab(this.app, this))
 	}
