@@ -4,12 +4,16 @@ import { App, Plugin, PluginSettingTab, Setting } from 'obsidian'
 export type HandyToolkitSettings = {
 	enableFirstLineIndent: boolean
 	quickSwitcherHiddenFolders: string
+	syncFrontmatterTitleOnRename: boolean
+	syncUpdatedFieldOnModify: boolean
 }
 
 // 插件设置：默认关闭首行缩进增强，避免安装后改变既有显示效果。
 export const DEFAULT_SETTINGS: HandyToolkitSettings = {
 	enableFirstLineIndent: false,
 	quickSwitcherHiddenFolders: '',
+	syncFrontmatterTitleOnRename: false,
+	syncUpdatedFieldOnModify: false,
 }
 
 type HandyToolkitSettingsPlugin = Plugin & {
@@ -53,6 +57,30 @@ export class HandyToolkitSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.quickSwitcherHiddenFolders)
 					.onChange(async (value) => {
 						this.plugin.settings.quickSwitcherHiddenFolders = value
+						await this.plugin.saveSettings()
+					}),
+			)
+
+		new Setting(containerEl)
+			.setName('重命名时同步 frontmatter title')
+			.setDesc('开启后，Markdown 文档重命名时会把 frontmatter 的 title 更新为新的文件名，不修改正文一级标题。')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.syncFrontmatterTitleOnRename)
+					.onChange(async (value) => {
+						this.plugin.settings.syncFrontmatterTitleOnRename = value
+						await this.plugin.saveSettings()
+					}),
+			)
+
+		new Setting(containerEl)
+			.setName('修改文档时更新 updated 字段')
+			.setDesc('开启后，Markdown 文档内容修改时会更新 frontmatter 的 updated 字段；若原时间距离当前时间两分钟内则跳过，避免重复触发。')
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.syncUpdatedFieldOnModify)
+					.onChange(async (value) => {
+						this.plugin.settings.syncUpdatedFieldOnModify = value
 						await this.plugin.saveSettings()
 					}),
 			)

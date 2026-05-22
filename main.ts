@@ -24,6 +24,16 @@ import {
 	registerQuickSwitcherFilter,	// 按配置隐藏快速切换中的特定文件夹文件
 } from './features/quick-switcher-filter'
 
+// 文档标题同步功能
+import {
+	registerTitleSyncOnRename,	// 重命名 Markdown 文档时同步 frontmatter title
+} from './features/title-sync-on-rename'
+
+// 文档更新时间同步功能
+import {
+	registerUpdatedFieldOnModify,	// 修改 Markdown 文档时同步 frontmatter updated
+} from './features/updated-field-on-modify'
+
 // .gitkeep 生成功能
 import {
 	registerGitkeepCommand,	// 注册"为目录生成 .gitkeep 文件"命令
@@ -65,6 +75,8 @@ export default class ObsidianHandyToolkit extends Plugin {
 		registerImageRenameCommand(this)
 		registerQuickSwitcherFilter(this)
 		registerGitkeepCommand(this)
+		registerTitleSyncOnRename(this)
+		registerUpdatedFieldOnModify(this)
 
 		this.addSettingTab(new HandyToolkitSettingTab(this.app, this))
 	}

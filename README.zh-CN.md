@@ -15,6 +15,12 @@
 ### 3.快速切换过滤
 - 可隐藏指定文件夹下的文件，避免它们出现在快速切换结果中。
 
+### 4.重命名时同步 frontmatter title
+- 可选在 Markdown 文档重命名时，把 frontmatter 的 `title` 更新为新的文件名。
+
+### 5.修改文档时更新 updated 字段
+- 可选在 Markdown 文档内容修改时，把 frontmatter 的 `updated` 更新为当前时间。
+
 ## 行为
 
 ### 1.属性折叠
@@ -31,6 +37,14 @@
 ### 3.快速切换过滤
 - 可通过设置隐藏快速切换中的指定文件夹；路径使用库根目录相对路径，多个文件夹用逗号分隔。
 
+### 4.重命名时同步 frontmatter title
+- 开启后，Markdown 文档重命名时只会把 frontmatter 的 `title` 更新为新的文件名。
+- 正文中的一级标题不会被修改。
+
+### 5.修改文档时更新 updated 字段
+- 开启后，Markdown 文档内容修改时会用本地时间更新 frontmatter 的 `updated` 字段，格式为 `YYYY-MM-DD HH:mm:ss`。
+- 如果原有 `updated` 距离当前时间两分钟内，插件会跳过写入，避免重复自触发更新。
+
 ## 命令
 
 - 中文界面：`折叠当前文件的属性`
@@ -46,3 +60,5 @@
 - `启用首行缩进`：默认关闭。
 - 开启后，插件会在内部接管迁移后的首行缩进逻辑，不再依赖对 Contextual Typography 插件或 Blue Topaz Custom 主题的单独修改。
 - `快速切换隐藏文件夹`：使用逗号分隔库内文件夹路径，例如 `Archive, Templates/private`。
+- `重命名时同步 frontmatter title`：默认关闭。
+- `修改文档时更新 updated 字段`：默认关闭。
