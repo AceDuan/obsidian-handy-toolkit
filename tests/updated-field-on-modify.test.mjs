@@ -53,7 +53,7 @@ test('updated 距离当前时间两分钟内时不会重复写入', async () => 
 })
 
 test('Markdown 文件修改时把过期的 updated 写成当前时间', async () => {
-	const { syncUpdatedFieldForModifiedFile } = await loadModule()
+	const { syncUpdatedFieldWithProcessFrontMatter } = await loadModule()
 	const file = { extension: 'md', path: '测试.md' }
 	const frontmatter = { title: '测试', updated: '2026-05-22 09:00:00' }
 	const plugin = {
@@ -67,14 +67,14 @@ test('Markdown 文件修改时把过期的 updated 写成当前时间', async ()
 		},
 	}
 
-	const didUpdate = await syncUpdatedFieldForModifiedFile(plugin, file, new Date(2026, 4, 22, 10, 1, 54))
+	const didUpdate = await syncUpdatedFieldWithProcessFrontMatter(plugin, file, new Date(2026, 4, 22, 10, 1, 54))
 
 	assert.equal(didUpdate, true)
 	assert.deepEqual(frontmatter, { title: '测试', updated: '2026-05-22 10:01:54' })
 })
 
 test('Markdown 文件修改时保留两分钟内的 updated', async () => {
-	const { syncUpdatedFieldForModifiedFile } = await loadModule()
+	const { syncUpdatedFieldWithProcessFrontMatter } = await loadModule()
 	const file = { extension: 'md', path: '测试.md' }
 	const frontmatter = { title: '测试', updated: '2026-05-22 10:00:00' }
 	const plugin = {
@@ -88,8 +88,47 @@ test('Markdown 文件修改时保留两分钟内的 updated', async () => {
 		},
 	}
 
-	const didUpdate = await syncUpdatedFieldForModifiedFile(plugin, file, new Date(2026, 4, 22, 10, 1, 54))
+	const didUpdate = await syncUpdatedFieldWithProcessFrontMatter(plugin, file, new Date(2026, 4, 22, 10, 1, 54))
 
 	assert.equal(didUpdate, false)
 	assert.deepEqual(frontmatter, { title: '测试', updated: '2026-05-22 10:00:00' })
+})
+
+test('Markdown 文件修改时保留 frontmatter 内的空行', async () => {
+	const { syncUpdatedFieldForModifiedFile } = await loadModule()
+	const file = { extension: 'md', path: '测试.md' }
+	let content = [
+		'---',
+		'title: 测试',
+		'',
+		'updated: 2026-05-22 09:00:00',
+		'---',
+		'正文',
+	].join('\n')
+	const plugin = {
+		app: {
+			vault: {
+				async read(targetFile) {
+					assert.equal(targetFile, file)
+					return content
+				},
+				async modify(targetFile, nextContent) {
+					assert.equal(targetFile, file)
+					content = nextContent
+				},
+			},
+		},
+	}
+
+	const didUpdate = await syncUpdatedFieldForModifiedFile(plugin, file, new Date(2026, 4, 22, 10, 1, 54))
+
+	assert.equal(didUpdate, true)
+	assert.equal(content, [
+		'---',
+		'title: 测试',
+		'',
+		'updated: 2026-05-22 10:01:54',
+		'---',
+		'正文',
+	].join('\n'))
 })

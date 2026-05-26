@@ -1,5 +1,7 @@
 import { Plugin } from 'obsidian'
 
+import { updateFrontmatterFieldInFile } from '../utils/frontmatter-text-updater'
+
 const FRESH_UPDATED_WINDOW_MS = 2 * 60 * 1000
 
 type ModifiedFileLike = {
@@ -72,7 +74,7 @@ export function shouldSyncUpdatedForModifiedFile(enabled: boolean, file: unknown
 	return record.extension === 'md' && typeof record.path === 'string' && record.path.length > 0
 }
 
-export async function syncUpdatedFieldForModifiedFile(
+export async function syncUpdatedFieldWithProcessFrontMatter(
 	plugin: Pick<UpdatedFieldPlugin, 'app'>,
 	file: ModifiedFileLike,
 	now = new Date(),
@@ -89,6 +91,18 @@ export async function syncUpdatedFieldForModifiedFile(
 	})
 
 	return didUpdate
+}
+
+export async function syncUpdatedFieldForModifiedFile(
+	plugin: Pick<UpdatedFieldPlugin, 'app'>,
+	file: ModifiedFileLike,
+	now = new Date(),
+) {
+	return updateFrontmatterFieldInFile(plugin.app.vault, file as Parameters<typeof updateFrontmatterFieldInFile>[1], {
+		fieldName: 'updated',
+		nextValue: formatUpdatedTimestamp(now),
+		shouldUpdate: (currentValue) => !isUpdatedTimestampFresh(currentValue, now),
+	})
 }
 
 // 文档更新时间同步：监听 Markdown 文件修改，按时间窗口更新 frontmatter updated，避免自触发循环。

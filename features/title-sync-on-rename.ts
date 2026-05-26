@@ -1,5 +1,7 @@
 import { Plugin } from 'obsidian'
 
+import { updateFrontmatterFieldInFile } from '../utils/frontmatter-text-updater'
+
 type RenamedFileLike = {
 	basename: string
 	extension: string
@@ -20,9 +22,16 @@ export function shouldSyncTitleForRenamedFile(enabled: boolean, file: unknown): 
 	return record.extension === 'md' && typeof record.basename === 'string' && record.basename.length > 0
 }
 
-export async function syncFrontmatterTitleForRenamedFile(plugin: Pick<TitleSyncPlugin, 'app'>, file: RenamedFileLike) {
+export async function syncFrontmatterTitleWithProcessFrontMatter(plugin: Pick<TitleSyncPlugin, 'app'>, file: RenamedFileLike) {
 	await plugin.app.fileManager.processFrontMatter(file as Parameters<typeof plugin.app.fileManager.processFrontMatter>[0], (frontmatter) => {
 		frontmatter.title = file.basename
+	})
+}
+
+export async function syncFrontmatterTitleForRenamedFile(plugin: Pick<TitleSyncPlugin, 'app'>, file: RenamedFileLike) {
+	return updateFrontmatterFieldInFile(plugin.app.vault, file as Parameters<typeof updateFrontmatterFieldInFile>[1], {
+		fieldName: 'title',
+		nextValue: file.basename,
 	})
 }
 

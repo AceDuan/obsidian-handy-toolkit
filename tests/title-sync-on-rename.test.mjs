@@ -37,7 +37,7 @@ test('非 Markdown 文件重命名时不会同步 frontmatter title', async () =
 })
 
 test('Markdown 文件重命名时使用新文件名作为 frontmatter title', async () => {
-	const { syncFrontmatterTitleForRenamedFile } = await loadModule()
+	const { syncFrontmatterTitleWithProcessFrontMatter } = await loadModule()
 	const file = { extension: 'md', basename: '新标题' }
 	const frontmatter = { title: '旧标题', tags: ['test'] }
 	const plugin = {
@@ -51,7 +51,47 @@ test('Markdown 文件重命名时使用新文件名作为 frontmatter title', as
 		},
 	}
 
-	await syncFrontmatterTitleForRenamedFile(plugin, file)
+	await syncFrontmatterTitleWithProcessFrontMatter(plugin, file)
 
 	assert.deepEqual(frontmatter, { title: '新标题', tags: ['test'] })
+})
+
+test('Markdown 文件重命名时保留 frontmatter 内的空行', async () => {
+	const { syncFrontmatterTitleForRenamedFile } = await loadModule()
+	const file = { extension: 'md', basename: '新标题' }
+	let content = [
+		'---',
+		'title: 旧标题',
+		'',
+		'tags:',
+		'  - test',
+		'---',
+		'正文',
+	].join('\n')
+	const plugin = {
+		app: {
+			vault: {
+				async read(targetFile) {
+					assert.equal(targetFile, file)
+					return content
+				},
+				async modify(targetFile, nextContent) {
+					assert.equal(targetFile, file)
+					content = nextContent
+				},
+			},
+		},
+	}
+
+	await syncFrontmatterTitleForRenamedFile(plugin, file)
+
+	assert.equal(content, [
+		'---',
+		'title: 新标题',
+		'',
+		'tags:',
+		'  - test',
+		'---',
+		'正文',
+	].join('\n'))
 })
