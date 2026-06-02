@@ -17,6 +17,7 @@
 
 ### 4.重命名时同步 frontmatter title
 - 可选在 Markdown 文档重命名时，把 frontmatter 的 `title` 更新为新的文件名。
+- 可选根据 Custom Attachment Location 的附件位置配置同步重命名附件文件夹；该开关仅在启用 title 同步后显示。
 
 ### 5.修改文档时更新 updated 字段
 - 可选在 Markdown 文档内容修改时，把 frontmatter 的 `updated` 更新为当前时间。
@@ -40,6 +41,10 @@
 ### 4.重命名时同步 frontmatter title
 - 开启后，Markdown 文档重命名时只会把 frontmatter 的 `title` 更新为新的文件名。
 - 正文中的一级标题不会被修改。
+- 开启“重命名时同步同名附件文件夹”后，插件会读取已启用的 Custom Attachment Location 配置，并根据 `attachmentFolderPath` 中的 `${noteFilename}`、`${notefilename}` 或 `${noteFileName}` 渲染旧/新附件目录。
+- 例如 `00_assets/${noteFilename}` 会在笔记从 `旧笔记.md` 改为 `新笔记.md` 后，尝试把 `00_assets/旧笔记` 改为 `00_assets/新笔记`。
+- 如果当前笔记存在不在旧同名文件夹下的图片附件，插件会弹出提醒，并跳过附件文件夹重命名。
+- 如果 Custom Attachment Location 不存在、未启用、配置读不到，插件不会重命名附件文件夹。
 
 ### 5.修改文档时更新 updated 字段
 - 开启后，Markdown 文档内容修改时会用本地时间更新 frontmatter 的 `updated` 字段，格式为 `YYYY-MM-DD HH:mm:ss`。
@@ -61,4 +66,5 @@
 - 开启后，插件会在内部接管迁移后的首行缩进逻辑，不再依赖对 Contextual Typography 插件或 Blue Topaz Custom 主题的单独修改。
 - `快速切换隐藏文件夹`：使用逗号分隔库内文件夹路径，例如 `Archive, Templates/private`。
 - `重命名时同步 frontmatter title`：默认关闭。
+- `重命名时同步同名附件文件夹`：默认关闭；仅在开启 `重命名时同步 frontmatter title` 后显示，并依赖已启用的 Custom Attachment Location 配置。
 - `修改文档时更新 updated 字段`：默认关闭。

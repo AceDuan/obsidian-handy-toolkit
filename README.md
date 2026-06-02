@@ -17,6 +17,7 @@ A handy toolkit for Obsidian reading and editing tweaks.
 
 ### 4. Frontmatter Title Sync On Rename
 - Optionally update the frontmatter `title` when a Markdown note is renamed.
+- Optionally rename the matching attachment folder based on the Custom Attachment Location folder template; this setting is shown only after title sync is enabled.
 
 ### 5. Frontmatter Updated Sync On Modify
 - Optionally update the frontmatter `updated` field when a Markdown note is modified.
@@ -40,6 +41,10 @@ A handy toolkit for Obsidian reading and editing tweaks.
 ### 4. Frontmatter Title Sync On Rename
 - When enabled, renaming a Markdown note updates only the frontmatter `title` to the new filename.
 - The first level 1 heading in the note body is not changed.
+- When `Sync matching attachment folder on rename` is enabled, the plugin reads the enabled Custom Attachment Location settings and renders the old/new attachment folders from `attachmentFolderPath` values containing `${noteFilename}`, `${notefilename}`, or `${noteFileName}`.
+- For example, `00_assets/${noteFilename}` renames `00_assets/Old note` to `00_assets/New note` when `Old note.md` is renamed to `New note.md`.
+- If any current-note image attachment is outside the old matching folder, the plugin shows a notice and skips renaming the attachment folder.
+- If Custom Attachment Location is missing, disabled, or unreadable, the plugin does not rename the attachment folder.
 
 ### 5. Frontmatter Updated Sync On Modify
 - When enabled, modifying a Markdown note updates the frontmatter `updated` field with local time in `YYYY-MM-DD HH:mm:ss` format.
@@ -61,4 +66,5 @@ A handy toolkit for Obsidian reading and editing tweaks.
 - When enabled, the plugin applies the migrated indentation behavior internally, without requiring separate changes to Contextual Typography or Blue Topaz Custom.
 - `Quick switcher hidden folders`: comma-separated vault-relative folder paths, such as `Archive, Templates/private`.
 - `Sync frontmatter title on rename`: disabled by default.
+- `Sync matching attachment folder on rename`: disabled by default; shown only after `Sync frontmatter title on rename` is enabled, and requires enabled Custom Attachment Location settings.
 - `Update updated field on modify`: disabled by default.
