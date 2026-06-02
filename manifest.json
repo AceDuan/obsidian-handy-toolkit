@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-handy-toolkit",
 	"name": "Obsidian Handy Toolkit",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"minAppVersion": "0.15.0",
 	"description": "Obsidian 阅读与编辑体验增强工具箱.",
 	"author": "Ace Duan",

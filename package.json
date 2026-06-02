@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-handy-toolkit",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "A handy toolkit for Obsidian reading and editing tweaks.",
 	"main": "main.js",
 	"scripts": {
