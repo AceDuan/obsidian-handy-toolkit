@@ -52,6 +52,151 @@ test('updated 距离当前时间两分钟内时不会重复写入', async () => 
 	assert.equal(isUpdatedTimestampFresh('2026-05-22 09:58:00', now), false)
 })
 
+test('quick-preview 许可队列最多保留最近三个文件', async () => {
+	const { rememberPendingEditorSave } = await loadModule()
+	const pending = []
+
+	rememberPendingEditorSave(pending, '一.md', 1000)
+	rememberPendingEditorSave(pending, '二.md', 2000)
+	rememberPendingEditorSave(pending, '三.md', 3000)
+	rememberPendingEditorSave(pending, '四.md', 4000)
+
+	assert.deepEqual(pending, [
+		{ path: '二.md', at: 2000 },
+		{ path: '三.md', at: 3000 },
+		{ path: '四.md', at: 4000 },
+	])
+})
+
+test('重复 quick-preview 许可会刷新文件时间并保持唯一记录', async () => {
+	const { rememberPendingEditorSave } = await loadModule()
+	const pending = [
+		{ path: '一.md', at: 1000 },
+		{ path: '二.md', at: 2000 },
+	]
+
+	rememberPendingEditorSave(pending, '一.md', 3000)
+
+	assert.deepEqual(pending, [
+		{ path: '二.md', at: 2000 },
+		{ path: '一.md', at: 3000 },
+	])
+})
+
+test('modify 命中 quick-preview 许可后会消费该许可', async () => {
+	const { consumePendingEditorSave } = await loadModule()
+	const pending = [
+		{ path: '一.md', at: 1000 },
+		{ path: '二.md', at: 2000 },
+	]
+
+	assert.equal(consumePendingEditorSave(pending, '一.md', 9000), true)
+	assert.deepEqual(pending, [
+		{ path: '二.md', at: 2000 },
+	])
+})
+
+test('modify 没有 quick-preview 许可或许可过期时不会消费成功', async () => {
+	const { consumePendingEditorSave } = await loadModule()
+	const pending = [
+		{ path: '一.md', at: 1000 },
+		{ path: '二.md', at: 2000 },
+	]
+
+	assert.equal(consumePendingEditorSave(pending, '三.md', 3000), false)
+	assert.equal(consumePendingEditorSave(pending, '一.md', 12000), false)
+	assert.deepEqual(pending, [
+		{ path: '二.md', at: 2000 },
+	])
+})
+
+test('注册事件后没有 quick-preview 许可的 modify 不会写 updated', async () => {
+	const { registerUpdatedFieldOnModify } = await loadModule()
+	const file = { extension: 'md', path: '测试.md' }
+	const handlers = {}
+	let modifyCount = 0
+	const plugin = {
+		settings: { syncUpdatedFieldOnModify: true },
+		registerEvent() {},
+		app: {
+			workspace: {
+				on(name, callback) {
+					handlers[name] = callback
+					return { name }
+				},
+			},
+			vault: {
+				on(name, callback) {
+					handlers[name] = callback
+					return { name }
+				},
+				async read() {
+					return [
+						'---',
+						'title: 测试',
+						'updated: 2026-05-22 09:00:00',
+						'---',
+						'正文',
+					].join('\n')
+				},
+				async modify() {
+					modifyCount += 1
+				},
+			},
+		},
+	}
+
+	registerUpdatedFieldOnModify(plugin)
+	handlers.modify(file)
+	await new Promise((resolve) => setTimeout(resolve, 0))
+
+	assert.equal(modifyCount, 0)
+})
+
+test('注册事件后 quick-preview 许可对应的 modify 会写 updated', async () => {
+	const { registerUpdatedFieldOnModify } = await loadModule()
+	const file = { extension: 'md', path: '测试.md' }
+	const handlers = {}
+	let modifiedContent = ''
+	const plugin = {
+		settings: { syncUpdatedFieldOnModify: true },
+		registerEvent() {},
+		app: {
+			workspace: {
+				on(name, callback) {
+					handlers[name] = callback
+					return { name }
+				},
+			},
+			vault: {
+				on(name, callback) {
+					handlers[name] = callback
+					return { name }
+				},
+				async read() {
+					return [
+						'---',
+						'title: 测试',
+						'updated: 2026-05-22 09:00:00',
+						'---',
+						'正文',
+					].join('\n')
+				},
+				async modify(_targetFile, nextContent) {
+					modifiedContent = nextContent
+				},
+			},
+		},
+	}
+
+	registerUpdatedFieldOnModify(plugin)
+	handlers['quick-preview'](file, '')
+	handlers.modify(file)
+	await new Promise((resolve) => setTimeout(resolve, 0))
+
+	assert.match(modifiedContent, /^updated: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m)
+})
+
 test('Markdown 文件修改时把过期的 updated 写成当前时间', async () => {
 	const { syncUpdatedFieldWithProcessFrontMatter } = await loadModule()
 	const file = { extension: 'md', path: '测试.md' }

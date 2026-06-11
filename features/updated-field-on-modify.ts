@@ -3,6 +3,13 @@ import { Plugin } from 'obsidian'
 import { updateFrontmatterFieldInFile } from '../utils/frontmatter-text-updater'
 
 const FRESH_UPDATED_WINDOW_MS = 2 * 60 * 1000
+const MAX_PENDING_EDITOR_SAVES = 3
+const PENDING_EDITOR_SAVE_TTL_MS = 10 * 1000
+
+type PendingEditorSave = {
+	path: string
+	at: number
+}
 
 type ModifiedFileLike = {
 	extension: string
@@ -74,6 +81,37 @@ export function shouldSyncUpdatedForModifiedFile(enabled: boolean, file: unknown
 	return record.extension === 'md' && typeof record.path === 'string' && record.path.length > 0
 }
 
+export function rememberPendingEditorSave(
+	pendingEditorSaves: PendingEditorSave[],
+	path: string,
+	at = Date.now(),
+) {
+	const existingIndex = pendingEditorSaves.findIndex((pending) => pending.path === path)
+	if (existingIndex !== -1) {
+		pendingEditorSaves.splice(existingIndex, 1)
+	}
+
+	pendingEditorSaves.push({ path, at })
+
+	while (pendingEditorSaves.length > MAX_PENDING_EDITOR_SAVES) {
+		pendingEditorSaves.shift()
+	}
+}
+
+export function consumePendingEditorSave(
+	pendingEditorSaves: PendingEditorSave[],
+	path: string,
+	now = Date.now(),
+) {
+	const pendingIndex = pendingEditorSaves.findIndex((pending) => pending.path === path)
+	if (pendingIndex === -1) {
+		return false
+	}
+
+	const [pending] = pendingEditorSaves.splice(pendingIndex, 1)
+	return now - pending.at <= PENDING_EDITOR_SAVE_TTL_MS
+}
+
 export async function syncUpdatedFieldWithProcessFrontMatter(
 	plugin: Pick<UpdatedFieldPlugin, 'app'>,
 	file: ModifiedFileLike,
@@ -107,9 +145,25 @@ export async function syncUpdatedFieldForModifiedFile(
 
 // 文档更新时间同步：监听 Markdown 文件修改，按时间窗口更新 frontmatter updated，避免自触发循环。
 export function registerUpdatedFieldOnModify(plugin: UpdatedFieldPlugin) {
+	const pendingEditorSaves: PendingEditorSave[] = []
+
+	plugin.registerEvent(
+		plugin.app.workspace.on('quick-preview', (file) => {
+			if (!shouldSyncUpdatedForModifiedFile(plugin.settings.syncUpdatedFieldOnModify, file)) {
+				return
+			}
+
+			rememberPendingEditorSave(pendingEditorSaves, file.path)
+		}),
+	)
+
 	plugin.registerEvent(
 		plugin.app.vault.on('modify', (file) => {
 			if (!shouldSyncUpdatedForModifiedFile(plugin.settings.syncUpdatedFieldOnModify, file)) {
+				return
+			}
+
+			if (!consumePendingEditorSave(pendingEditorSaves, file.path)) {
 				return
 			}
 
