@@ -8,6 +8,7 @@ A handy toolkit for Obsidian reading and editing tweaks.
 
 ### 1. Collapse Properties
 - Collapse the properties area for the active file, including all open markdown views of the same file.
+- Collapse properties for every Markdown note with valid YAML frontmatter in one operation.
 
 ### 2. First-Line Indentation
 - Optionally apply first-line indentation in source mode and reading mode.
@@ -25,8 +26,10 @@ A handy toolkit for Obsidian reading and editing tweaks.
 ## Behavior
 
 ### 1. Collapse Properties
-- Provides one command to collapse properties for the active file.
+- Provides separate commands for the active file and all notes in the vault.
 - When the same file is open in multiple markdown leaves, the plugin collapses properties in all of those open views.
+- The bulk command skips notes without valid frontmatter and preserves existing heading, list, and other body folds.
+- Fold state is stored only in Obsidian's local data on the current device. Markdown content is not modified, and the state is not synchronized through Git.
 - In reading mode, the properties area collapses and updates immediately.
 - In source mode, the plugin writes the collapsed state, but immediate visual refresh is not guaranteed by the public Obsidian API.
 - If the internal metadata editor is unavailable, the plugin falls back to Obsidian's built-in toggle command for the active leaf.
@@ -53,7 +56,9 @@ A handy toolkit for Obsidian reading and editing tweaks.
 ## Command
 
 - Chinese UI: `折叠当前文件的属性`
+- Chinese UI: `折叠所有笔记的属性`
 - Non-Chinese UI: `Collapse properties in current file`
+- Non-Chinese UI: `Collapse properties in all notes`
 
 ## Installation
 
