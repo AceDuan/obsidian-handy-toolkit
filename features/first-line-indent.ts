@@ -5,12 +5,8 @@ export const INDENT_FEATURE_CLASS = 'obsidian-handy-toolkit-indent-enabled'
 
 // 首行缩进功能：迁移自 Blue Topaz Custom 的相关规则，并改为插件自己的作用域。
 const INDENT_STYLE = `
-body.${INDENT_FEATURE_CLASS} .workspace-leaf-content[data-type="markdown"] .markdown-source-view.mod-cm6 div.cm-line:not(:is(.hr,.HyperMD-header,.HyperMD-quote,.HyperMD-list-line,.HyperMD-codeblock)) {
+body.${INDENT_FEATURE_CLASS} .workspace-leaf-content[data-type="markdown"] .markdown-source-view.mod-cm6 div.cm-line:not(:is(.hr,.HyperMD-header,.HyperMD-quote,.HyperMD-list-line,.HyperMD-codeblock)):not(:has(.cm-hmd-frontmatter)) {
 	text-indent: 2em;
-}
-
-body.${INDENT_FEATURE_CLASS} .workspace-leaf-content[data-type="markdown"] .markdown-source-view.mod-cm6 div.cm-line:not(:is(.hr,.HyperMD-header,.HyperMD-quote,.HyperMD-list-line,.HyperMD-codeblock)) .cm-hmd-frontmatter:first-of-type {
-	margin-left: -2em;
 }
 
 body.${INDENT_FEATURE_CLASS} .markdown-source-view.mod-cm6 div.has-banner.cm-line:not(.HyperMD-header) .cm-def.cm-hmd-frontmatter,
@@ -59,6 +55,11 @@ body.${INDENT_FEATURE_CLASS} .el-p:has(.br-indent-line) > p:first-of-type {
 	margin-bottom: 0;
 }
 `
+
+// 首行缩进功能：提供注入样式，便于验证选择器不会覆盖 frontmatter。
+export function getIndentStyle() {
+	return INDENT_STYLE
+}
 
 // 首行缩进功能：迁移自 Contextual Typography，用于把 <br> 分隔内容拆成独立段落。
 function splitBrInParagraph(nodeEl: HTMLElement) {
@@ -157,7 +158,7 @@ export function refreshMarkdownViews(app: App) {
 export function injectIndentStyle(plugin: Plugin) {
 	const styleEl = document.createElement('style')
 	styleEl.id = 'obsidian-handy-toolkit-indent-style'
-	styleEl.textContent = INDENT_STYLE
+	styleEl.textContent = getIndentStyle()
 	document.head.appendChild(styleEl)
 	plugin.register(() => styleEl.remove())
 }
