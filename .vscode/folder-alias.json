@@ -1,0 +1,38 @@
+{
+    "main.ts": {
+        "description": "插件入口"
+    },
+    "manifest.json": {
+        "description": "插件清单"
+    },
+    "esbuild.config.mjs": {
+        "description": "构建配置"
+    },
+    "version-bump.mjs": {
+        "description": "版本更新脚本"
+    },
+    "features/collapse-properties.ts": {
+        "description": "折叠笔记属性"
+    },
+    "features/first-line-indent.ts": {
+        "description": "首行缩进"
+    },
+    "features/gitkeep.ts": {
+        "description": "生成 .gitkeep"
+    },
+    "features/image-renamer.ts": {
+        "description": "按顺序重命名图片"
+    },
+    "features/quick-switcher-filter.ts": {
+        "description": "过滤快速切换列表"
+    },
+    "features/settings.ts": {
+        "description": "设置按钮定义"
+    },
+    "features/title-sync-on-rename.ts": {
+        "description": "重命名时同步标题"
+    },
+    "features/updated-field-on-modify.ts": {
+        "description": "修改时同步更新时间"
+    }
+}
