@@ -19,6 +19,11 @@ import {
 	registerImageRenameCommand,	// 注册“按正文顺序重命名当前笔记图片”命令
 } from './features/image-renamer'
 
+// Perlite 发布状态切换功能
+import {
+	registerPerlitePublishToggleCommand, // 注册“切换当前文档发布状态”命令
+} from './features/perlite-publish-toggle'
+
 // 快速切换过滤功能
 import {
 	registerQuickSwitcherFilter,	// 按配置隐藏快速切换中的特定文件夹文件
@@ -73,6 +78,7 @@ export default class ObsidianHandyToolkit extends Plugin {
 
 		registerCollapsePropertiesCommand(this)
 		registerImageRenameCommand(this)
+		registerPerlitePublishToggleCommand(this)
 		registerQuickSwitcherFilter(this)
 		registerGitkeepCommand(this)
 		registerTitleSyncOnRename(this)

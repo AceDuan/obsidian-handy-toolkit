@@ -1,4 +1,4 @@
-import { parseYaml } from 'obsidian'
+import { Notice, Plugin, TFile, parseYaml } from 'obsidian'
 
 const PERLITE_PUBLISH_FIELD = 'perlite_publish'
 const FRONTMATTER_BOUNDARY = '---'
@@ -144,4 +144,48 @@ export function togglePerlitePublishText(
 		status: isPublished ? 'unpublished' : 'published',
 		content: nextLines.join(lineEnding),
 	}
+}
+
+const RESULT_NOTICES: Record<PerlitePublishToggleResult['status'], string> = {
+	published: '已将当前文档设为发布',
+	unpublished: '已取消当前文档发布',
+	'missing-frontmatter': '当前文档没有 Frontmatter，无法设置发布状态',
+	'unclosed-frontmatter': '当前文档的 Frontmatter 未闭合，无法设置发布状态',
+	'invalid-frontmatter': '当前文档的 Frontmatter 无法解析，未修改发布状态',
+	'unsafe-field': '无法安全定位 perlite_publish 属性，未修改发布状态',
+}
+
+export async function togglePerlitePublishForFile(
+	plugin: Pick<Plugin, 'app'>,
+	file: TFile,
+) {
+	try {
+		const content = await plugin.app.vault.read(file)
+		const result = togglePerlitePublishText(content)
+
+		if (result.status === 'published' || result.status === 'unpublished') {
+			await plugin.app.vault.modify(file, result.content)
+		}
+
+		new Notice(RESULT_NOTICES[result.status])
+	} catch (error) {
+		console.error('切换当前文档发布状态失败：', error)
+		new Notice('切换当前文档发布状态失败')
+	}
+}
+
+export function registerPerlitePublishToggleCommand(plugin: Plugin) {
+	plugin.addCommand({
+		id: 'toggle-perlite-publish-current-file',
+		name: '切换当前文档发布状态',
+		checkCallback: (checking) => {
+			const file = plugin.app.workspace.getActiveFile()
+			if (!file || file.extension !== 'md') return false
+
+			if (!checking) {
+				void togglePerlitePublishForFile(plugin, file)
+			}
+			return true
+		},
+	})
 }
