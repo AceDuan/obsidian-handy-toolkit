@@ -10,6 +10,9 @@ node_modules
 main.js
 release/
 
+# Git worktree 隔离目录
+.worktrees/
+
 # Exclude sourcemaps
 *.map
 
