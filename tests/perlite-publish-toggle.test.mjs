@@ -91,6 +91,24 @@ test('false、空值和字符串 true 都在原位规范化并保留行尾注释
 	}
 })
 
+test('原位更新保留任意长度的冒号后空白', async () => {
+	const { togglePerlitePublishText } = await loadModule()
+	const content = '---\ntitle: 测试\nperlite_publish:    false  # 保留说明\n---\n正文'
+	const result = togglePerlitePublishText(content, createYamlParser({ title: '测试' }))
+
+	assert.equal(result.status, 'published')
+	assert.equal(result.content, '---\ntitle: 测试\nperlite_publish:    true  # 保留说明\n---\n正文')
+})
+
+test('普通标量中的孤立引号不会吞掉行尾注释', async () => {
+	const { togglePerlitePublishText } = await loadModule()
+	const content = '---\ntitle: 测试\nperlite_publish: don\'t  # 保留说明\n---\n正文'
+	const result = togglePerlitePublishText(content, createYamlParser({ title: '测试' }))
+
+	assert.equal(result.status, 'published')
+	assert.equal(result.content, '---\ntitle: 测试\nperlite_publish: true  # 保留说明\n---\n正文')
+})
+
 test('保留 CRLF、其他字段文本、嵌套同名字段和正文', async () => {
 	const { togglePerlitePublishText } = await loadModule()
 	const content = [

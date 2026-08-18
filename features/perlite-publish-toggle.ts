@@ -31,42 +31,65 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function getCommentSuffix(rawValue: string) {
-	let inSingleQuote = false
-	let inDoubleQuote = false
-	let escaped = false
+function getCommentStart(rawValue: string, searchStart: number) {
+	for (let index = searchStart; index < rawValue.length; index += 1) {
+		if (rawValue[index] !== '#') continue
+		if (index > searchStart && /\s/.test(rawValue[index - 1])) return index
+	}
+	return -1
+}
 
-	for (let index = 0; index < rawValue.length; index += 1) {
-		const character = rawValue[index]
+function getCommentSuffix(rawValue: string): string | null {
+	const valueStart = rawValue.search(/\S/)
+	if (valueStart === -1) return ''
 
-		if (inDoubleQuote && escaped) {
-			escaped = false
-			continue
-		}
-		if (inDoubleQuote && character === '\\') {
-			escaped = true
-			continue
-		}
-		if (!inDoubleQuote && character === "'") {
-			if (inSingleQuote && rawValue[index + 1] === "'") {
+	const quote = rawValue[valueStart]
+	let valueEnd = valueStart
+	if (quote === "'") {
+		for (let index = valueStart + 1; index < rawValue.length; index += 1) {
+			if (rawValue[index] !== "'") continue
+			if (rawValue[index + 1] === "'") {
 				index += 1
 				continue
 			}
-			inSingleQuote = !inSingleQuote
-			continue
+			valueEnd = index + 1
+			break
 		}
-		if (!inSingleQuote && character === '"') {
-			inDoubleQuote = !inDoubleQuote
-			continue
-		}
-		if (!inSingleQuote && !inDoubleQuote && character === '#' && (index === 0 || /\s/.test(rawValue[index - 1]))) {
-			let suffixStart = index
-			while (suffixStart > 0 && /[ \t]/.test(rawValue[suffixStart - 1])) suffixStart -= 1
-			return rawValue.slice(suffixStart)
+	} else if (quote === '"') {
+		for (let index = valueStart + 1; index < rawValue.length; index += 1) {
+			if (rawValue[index] === '\\') {
+				index += 1
+				continue
+			}
+			if (rawValue[index] === '"') {
+				valueEnd = index + 1
+				break
+			}
 		}
 	}
 
-	return ''
+	const commentStart = getCommentStart(rawValue, valueEnd)
+	if (commentStart === -1) return ''
+
+	let suffixStart = commentStart
+	while (suffixStart > valueEnd && /[ \t]/.test(rawValue[suffixStart - 1])) suffixStart -= 1
+	if ((quote === "'" || quote === '"') && rawValue.slice(valueEnd, suffixStart).trim() !== '') return null
+	return rawValue.slice(suffixStart)
+}
+
+function getPublishedLine(match: RegExpMatchArray) {
+	const commentSuffix = getCommentSuffix(match[3])
+	if (commentSuffix === null) return null
+
+	if (match[3].startsWith('#')) {
+		const whitespace = match[2].match(/[ \t]*$/)?.[0] ?? ''
+		const valueSpacingLength = Math.ceil(whitespace.length / 2)
+		const separator = match[2].slice(0, -whitespace.length) + whitespace.slice(0, valueSpacingLength)
+		const commentSpacing = whitespace.slice(valueSpacingLength)
+		return `${match[1]}${separator}true${commentSpacing}${match[3]}`
+	}
+
+	return `${match[1]}${match[2]}true${commentSuffix}`
 }
 
 function parseFrontmatter(yaml: string, yamlParser: YamlParser) {
@@ -108,7 +131,7 @@ export function togglePerlitePublishText(
 	const parsed = parseFrontmatter(lines.slice(1, frontmatterEnd).join(lineEnding), yamlParser)
 	if (!parsed.ok) return { status: 'invalid-frontmatter', content }
 
-	const fieldPattern = /^(perlite_publish)(\s*:\s{0,2})(.*)$/
+	const fieldPattern = /^(perlite_publish)(\s*:\s*)(.*)$/
 	const matches: Array<{ index: number; match: RegExpMatchArray }> = []
 	for (let index = 1; index < frontmatterEnd; index += 1) {
 		const match = lines[index].match(fieldPattern)
@@ -128,7 +151,9 @@ export function togglePerlitePublishText(
 		nextFrontmatterEnd -= 1
 	} else if (matches.length === 1) {
 		const { index, match } = matches[0]
-		nextLines[index] = `${match[1]}${match[2]}true${getCommentSuffix(match[3])}`
+		const publishedLine = getPublishedLine(match)
+		if (publishedLine === null) return { status: 'unsafe-field', content }
+		nextLines[index] = publishedLine
 	} else {
 		let insertIndex = frontmatterEnd
 		while (insertIndex > 1 && nextLines[insertIndex - 1].trim() === '') insertIndex -= 1
