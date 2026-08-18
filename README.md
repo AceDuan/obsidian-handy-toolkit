@@ -23,6 +23,9 @@ A handy toolkit for Obsidian reading and editing tweaks.
 ### 5. Frontmatter Updated Sync On Modify
 - Optionally update the frontmatter `updated` field when a Markdown note is modified.
 
+### 6. Perlite Publish Status Toggle
+- Toggle the active Markdown note between `perlite_publish: true` and no publish field with a command that can be assigned a hotkey.
+
 ## Behavior
 
 ### 1. Collapse Properties
@@ -53,12 +56,18 @@ A handy toolkit for Obsidian reading and editing tweaks.
 - When enabled, modifying a Markdown note updates the frontmatter `updated` field with local time in `YYYY-MM-DD HH:mm:ss` format.
 - If the existing `updated` value is within two minutes of the current time, the plugin skips writing it again to avoid repeated self-triggered updates.
 
+### 6. Perlite Publish Status Toggle
+- The command writes the YAML boolean `perlite_publish: true` when the active note is unpublished, and removes the field when it is published.
+- Notes without valid frontmatter are left unchanged and produce a notice.
+- The command only changes the publish field. It does not run the Perlite publisher or synchronize content to a server.
+
 ## Command
 
 - Chinese UI: `折叠当前文件的属性`
 - Chinese UI: `折叠所有笔记的属性`
 - Non-Chinese UI: `Collapse properties in current file`
 - Non-Chinese UI: `Collapse properties in all notes`
+- Chinese UI: `切换当前文档发布状态`
 
 ## Installation
 

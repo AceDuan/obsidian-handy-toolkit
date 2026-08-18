@@ -23,6 +23,9 @@
 ### 5.修改文档时更新 updated 字段
 - 可选在 Markdown 文档内容修改时，把 frontmatter 的 `updated` 更新为当前时间。
 
+### 6.切换 Perlite 发布状态
+- 通过一个可绑定快捷键的命令，在当前 Markdown 文档的 `perlite_publish: true` 与无发布字段之间切换。
+
 ## 行为
 
 ### 1.属性折叠
@@ -53,12 +56,18 @@
 - 开启后，Markdown 文档内容修改时会用本地时间更新 frontmatter 的 `updated` 字段，格式为 `YYYY-MM-DD HH:mm:ss`。
 - 如果原有 `updated` 距离当前时间两分钟内，插件会跳过写入，避免重复自触发更新。
 
+### 6.切换 Perlite 发布状态
+- 当前文档未发布时，命令写入 YAML 布尔值 `perlite_publish: true`；已发布时删除该字段。
+- 没有有效 frontmatter 的文档保持不变，并显示提示。
+- 命令只修改发布字段，不会运行 Perlite 发布器，也不会把内容同步到服务器。
+
 ## 命令
 
 - 中文界面：`折叠当前文件的属性`
 - 中文界面：`折叠所有笔记的属性`
 - 非中文界面：`Collapse properties in current file`
 - 非中文界面：`Collapse properties in all notes`
+- 中文界面：`切换当前文档发布状态`
 
 ## 安装
 
