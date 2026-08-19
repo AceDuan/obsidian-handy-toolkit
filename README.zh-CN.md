@@ -1,4 +1,4 @@
-# Obsidian Handy Toolkit
+# Handy Toolkit
 
 [English README](./README.md)
 

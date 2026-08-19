@@ -1,4 +1,4 @@
-# Obsidian Handy Toolkit
+# Handy Toolkit
 
 [中文说明](./README.zh-CN.md)
 
