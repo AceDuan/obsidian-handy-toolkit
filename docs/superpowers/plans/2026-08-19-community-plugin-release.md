@@ -32,7 +32,7 @@
 - Consumes: Obsidian's community plugin manifest schema and release matching rules.
 - Produces: a submission-ready manifest, version mapping, and bilingual public documentation.
 
-- [ ] **Step 1: Update manifest and version mapping**
+- [x] **Step 1: Update manifest and version mapping**
 
 Set `manifest.json` to:
 
@@ -54,7 +54,7 @@ Remove the empty optional `authorUrl` and `fundingUrl` fields. Add this mapping 
 "0.0.3": "1.13.7"
 ```
 
-- [ ] **Step 2: Complete public usage documentation**
+- [x] **Step 2: Complete public usage documentation**
 
 In both README files:
 
@@ -63,7 +63,7 @@ In both README files:
 - Add all command names to the Command section, including image renaming and `.gitkeep` generation.
 - Replace `.obsidian/plugins/obsidian-handy-toolkit` with `.obsidian/plugins/handy-toolkit`.
 
-- [ ] **Step 3: Verify release metadata**
+- [x] **Step 3: Verify release metadata**
 
 Run:
 
@@ -75,7 +75,7 @@ git diff --check
 
 Expected: all 62 tests pass, production build succeeds, and whitespace checks report no errors.
 
-- [ ] **Step 4: Commit and tag**
+- [x] **Step 4: Commit and tag**
 
 Run:
 

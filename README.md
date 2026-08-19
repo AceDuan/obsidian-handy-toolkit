@@ -26,6 +26,12 @@ A handy toolkit for Obsidian reading and editing tweaks.
 ### 6. Perlite Publish Status Toggle
 - Toggle the active Markdown note between `perlite_publish: true` and no publish field with a command that can be assigned a hotkey.
 
+### 7. Image Renaming
+- Rename local image attachments in the active Markdown note according to their order in the note body.
+
+### 8. Gitkeep Generation
+- Create empty `.gitkeep` files for several predefined folder names used by the vault workflow.
+
 ## Behavior
 
 ### 1. Collapse Properties
@@ -61,6 +67,15 @@ A handy toolkit for Obsidian reading and editing tweaks.
 - Notes without valid frontmatter are left unchanged and produce a notice.
 - The command only changes the publish field. It does not run the Perlite publisher or synchronize content to a server.
 
+### 7. Image Renaming
+- The command supports local wikilink and Markdown image links with common image extensions.
+- Images are renamed in place as `image-<timestamp>-<sequence>.<extension>`, and the note links are updated to match.
+- External images, block references, and image syntax inside fenced code blocks are not changed.
+
+### 8. Gitkeep Generation
+- The command creates missing `.gitkeep` files in `00_Inbox`, `00_Moved`, and `Clippings`.
+- Existing `.gitkeep` files are skipped, and the command reports how many files were created or skipped.
+
 ## Command
 
 - Chinese UI: `折叠当前文件的属性`
@@ -68,11 +83,13 @@ A handy toolkit for Obsidian reading and editing tweaks.
 - Non-Chinese UI: `Collapse properties in current file`
 - Non-Chinese UI: `Collapse properties in all notes`
 - Chinese UI: `切换当前文档发布状态`
+- Chinese UI: `按正文顺序重命名当前笔记图片`
+- Chinese UI: `为目录生成 .gitkeep 文件`
 
 ## Installation
 
-- Copy the plugin into your vault's `.obsidian/plugins/obsidian-handy-toolkit` directory.
-- Enable the `obsidian-handy-toolkit` community plugin in Obsidian.
+- Copy the plugin into your vault's `.obsidian/plugins/handy-toolkit` directory.
+- Enable the `handy-toolkit` community plugin in Obsidian.
 
 ## Settings
 
