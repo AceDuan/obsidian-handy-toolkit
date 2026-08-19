@@ -26,6 +26,12 @@
 ### 6.切换 Perlite 发布状态
 - 通过一个可绑定快捷键的命令，在当前 Markdown 文档的 `perlite_publish: true` 与无发布字段之间切换。
 
+### 7.图片重命名
+- 按当前 Markdown 文档正文中的出现顺序，重命名其中的本地图片附件。
+
+### 8.生成 .gitkeep
+- 为工作流使用的几个固定目录创建空 `.gitkeep` 文件。
+
 ## 行为
 
 ### 1.属性折叠
@@ -61,6 +67,15 @@
 - 没有有效 frontmatter 的文档保持不变，并显示提示。
 - 命令只修改发布字段，不会运行 Perlite 发布器，也不会把内容同步到服务器。
 
+### 7.图片重命名
+- 命令支持常见图片扩展名的本地 wikilink 和 Markdown 图片链接。
+- 图片会在原目录内重命名为 `image-<时间戳>-<序号>.<扩展名>`，并同步更新当前笔记中的链接。
+- 外部图片、块引用以及围栏代码块中的图片语法不会被修改。
+
+### 8.生成 .gitkeep
+- 命令会为 `00_Inbox`、`00_Moved` 和 `Clippings` 创建缺失的 `.gitkeep` 文件。
+- 已存在的 `.gitkeep` 会被跳过，命令会提示创建和跳过的数量。
+
 ## 命令
 
 - 中文界面：`折叠当前文件的属性`
@@ -68,11 +83,13 @@
 - 非中文界面：`Collapse properties in current file`
 - 非中文界面：`Collapse properties in all notes`
 - 中文界面：`切换当前文档发布状态`
+- 中文界面：`按正文顺序重命名当前笔记图片`
+- 中文界面：`为目录生成 .gitkeep 文件`
 
 ## 安装
 
-- 将插件复制到你的库目录 `.obsidian/plugins/obsidian-handy-toolkit` 下。
-- 在 Obsidian 中启用 `obsidian-handy-toolkit` 社区插件。
+- 将插件复制到你的库目录 `.obsidian/plugins/handy-toolkit` 下。
+- 在 Obsidian 中启用 `handy-toolkit` 社区插件。
 
 ## 设置
 
