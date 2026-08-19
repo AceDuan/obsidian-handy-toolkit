@@ -87,9 +87,10 @@ function filterQuickSwitcherResult(result: unknown, hiddenFolderSetting: string)
 		return result
 	}
 
+	const items = result as unknown[]
 	const shouldShowFile = createQuickSwitcherFileFilter(hiddenFolderSetting)
 
-	return result.filter((item) => {
+	return items.filter((item) => {
 		const path = getFilePathFromItem(item)
 		return !path || shouldShowFile({ path })
 	})
@@ -100,7 +101,7 @@ function getQuickSwitcherInstance(plugin: QuickSwitcherFilterPlugin) {
 	const internalPlugins = appRecord.internalPlugins as
 		| {
 				getPluginById?: (id: string) => unknown
-		  }
+		}
 		| undefined
 	const switcherPlugin = internalPlugins?.getPluginById?.('switcher')
 
@@ -153,7 +154,7 @@ function getPatchTargets(candidate: Record<string, unknown>) {
 }
 
 function patchMethod(plugin: QuickSwitcherFilterPlugin, patches: PatchTarget[], target: Record<string, unknown>, key: string) {
-	const original = target[key] as unknown
+	const original = target[key]
 	const hadOwnProperty = Object.prototype.hasOwnProperty.call(target, key)
 
 	if (typeof original !== 'function' || patches.some((patch) => patch.target === target && patch.key === key)) {

@@ -48,6 +48,7 @@ import {
 	DEFAULT_SETTINGS,			// 插件默认设置
 	HandyToolkitSettingTab,		// 插件设置页
 	HandyToolkitSettings,		// 插件设置类型
+	mergeStoredSettings,		// 设置安全合并
 } from './features/settings'
 
 // 插件入口：协调各独立功能模块的注册、设置加载和卸载清理。
@@ -56,7 +57,8 @@ export default class ObsidianHandyToolkit extends Plugin {
 
 	// 设置管理：读取插件设置，并与默认值合并。
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
+		const storedSettings = await this.loadData() as unknown
+		this.settings = mergeStoredSettings(DEFAULT_SETTINGS, storedSettings)
 	}
 
 	// 设置管理：保存插件设置，并刷新首行缩进功能状态。

@@ -42,6 +42,33 @@ test('附件文件夹同步重命名默认关闭', async () => {
 	assert.equal(DEFAULT_SETTINGS.syncAssetFolderOnRename, false)
 })
 
+test('设置合并只接受已知类型的持久化字段', async () => {
+	const { DEFAULT_SETTINGS, mergeStoredSettings } = await loadModule()
+
+	assert.deepEqual(mergeStoredSettings(DEFAULT_SETTINGS, {
+		enableFirstLineIndent: true,
+		quickSwitcherHiddenFolders: ' Archive ',
+		syncFrontmatterTitleOnRename: true,
+		syncAssetFolderOnRename: true,
+		syncUpdatedFieldOnModify: true,
+		unknownField: '未知字段',
+	}), {
+		enableFirstLineIndent: true,
+		quickSwitcherHiddenFolders: ' Archive ',
+		syncFrontmatterTitleOnRename: true,
+		syncAssetFolderOnRename: true,
+		syncUpdatedFieldOnModify: true,
+	})
+
+	assert.deepEqual(mergeStoredSettings(DEFAULT_SETTINGS, {
+		enableFirstLineIndent: 'yes',
+		quickSwitcherHiddenFolders: 12,
+		syncFrontmatterTitleOnRename: null,
+		syncAssetFolderOnRename: 1,
+		syncUpdatedFieldOnModify: {},
+	}), DEFAULT_SETTINGS)
+})
+
 test('只有开启重命名 title 同步后才显示附件文件夹同步开关', async () => {
 	const { shouldShowAssetFolderRenameSetting } = await loadModule()
 

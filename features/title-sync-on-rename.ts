@@ -172,12 +172,6 @@ export async function syncAssetFolderForRenamedNote(
 	await plugin.app.fileManager.renameFile(oldFolder, newFolderPath)
 }
 
-export async function syncFrontmatterTitleWithProcessFrontMatter(plugin: Pick<TitleSyncPlugin, 'app'>, file: RenamedFileLike) {
-	await plugin.app.fileManager.processFrontMatter(file as Parameters<typeof plugin.app.fileManager.processFrontMatter>[0], (frontmatter) => {
-		frontmatter.title = file.basename
-	})
-}
-
 export async function syncFrontmatterTitleForRenamedFile(plugin: Pick<TitleSyncPlugin, 'app'>, file: RenamedFileLike) {
 	return updateFrontmatterFieldInFile(plugin.app.vault, file as Parameters<typeof updateFrontmatterFieldInFile>[1], {
 		fieldName: 'title',
