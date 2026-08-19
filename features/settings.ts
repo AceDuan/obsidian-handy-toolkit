@@ -1,4 +1,5 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian'
+import { App, Plugin, PluginSettingTab } from 'obsidian'
+import type { SettingDefinitionItem } from 'obsidian'
 
 import {
 	CustomAttachmentLocationVaultLike,
@@ -29,6 +30,8 @@ type HandyToolkitSettingsPlugin = Plugin & {
 	settings: HandyToolkitSettings
 	saveSettings(): Promise<void>
 }
+
+const ASSET_FOLDER_RENAME_DESCRIPTION = '开启后，Markdown 文档重命名时会按 Custom Attachment Location 的附件位置配置同步重命名附件文件夹。'
 
 export function shouldShowAssetFolderRenameSetting(settings: Pick<HandyToolkitSettings, 'syncFrontmatterTitleOnRename'>) {
 	return settings.syncFrontmatterTitleOnRename
@@ -68,20 +71,7 @@ export async function getAssetFolderRenameDependencyStatusTone(
 	return getCustomAttachmentLocationStatusTone(await getCustomAttachmentLocationStatus(vault))
 }
 
-function createAssetFolderRenameDesc(statusMessage: string, statusTone: 'normal' | 'success' | 'error') {
-	const fragment = document.createDocumentFragment()
-	fragment.appendText('开启后，Markdown 文档重命名时会按 Custom Attachment Location 的附件位置配置同步重命名附件文件夹。')
-	fragment.createEl('br')
-
-	const statusEl = fragment.createSpan({ text: statusMessage })
-	if (statusTone !== 'normal') {
-		statusEl.style.color = statusTone === 'success' ? 'var(--text-success)' : 'var(--text-error)'
-	}
-
-	return fragment
-}
-
-// 设置页：提供用户可控制的插件开关。
+// 设置页：提供用户可控制的插件设置项。
 export class HandyToolkitSettingTab extends PluginSettingTab {
 	plugin: HandyToolkitSettingsPlugin
 
@@ -91,85 +81,100 @@ export class HandyToolkitSettingTab extends PluginSettingTab {
 		this.plugin = plugin
 	}
 
-	// 设置页：渲染插件设置项。
-	display() {
-		const { containerEl } = this
-		containerEl.empty()
+	// 设置页：声明设置项，供 Obsidian 渲染和设置搜索索引使用。
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				name: '启用首行缩进',
+				desc: '开启后自动应用源码模式首行缩进，并处理阅读模式中由 <br> 分隔的段落缩进。',
+				control: { type: 'toggle', key: 'enableFirstLineIndent' },
+			},
+			{
+				name: '快速切换隐藏文件夹',
+				desc: '使用逗号分隔库内文件夹路径；这些文件夹下的文件不会出现在快速切换结果中。',
+				control: {
+					type: 'textarea',
+					key: 'quickSwitcherHiddenFolders',
+					placeholder: 'Archive, Templates/private',
+				},
+			},
+			{
+				name: '重命名时同步 frontmatter title',
+				desc: '开启后，Markdown 文档重命名时会把 frontmatter 的 title 更新为新的文件名，不修改正文一级标题。',
+				control: { type: 'toggle', key: 'syncFrontmatterTitleOnRename' },
+			},
+			{
+				name: '重命名时同步同名附件文件夹',
+				desc: ASSET_FOLDER_RENAME_DESCRIPTION,
+				control: { type: 'toggle', key: 'syncAssetFolderOnRename' },
+				visible: () => shouldShowAssetFolderRenameSetting(this.plugin.settings),
+			},
+			{
+				name: '附件位置状态',
+				desc: '正在检测 Custom Attachment Location 配置。',
+				searchable: false,
+				visible: () => shouldShowAssetFolderRenameDependencyStatus(this.plugin.settings),
+				render: (setting) => {
+					let active = true
 
-		new Setting(containerEl)
-			.setName('启用首行缩进')
-			.setDesc('开启后自动应用源码模式首行缩进，并处理阅读模式中由 <br> 分隔的段落缩进。')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.enableFirstLineIndent)
-					.onChange(async (value) => {
-						this.plugin.settings.enableFirstLineIndent = value
-						await this.plugin.saveSettings()
-					}),
-			)
+					getAssetFolderRenameDependencyStatusText(this.plugin.app.vault, this.plugin.settings)
+						.then((message) => {
+							if (active) {
+								setting.setDesc(`${ASSET_FOLDER_RENAME_DESCRIPTION}\n${message}`)
+							}
+						})
+						.catch(() => {
+							if (active) {
+								setting.setDesc(`${ASSET_FOLDER_RENAME_DESCRIPTION}\n无法读取 Custom Attachment Location 配置，此开关不会生效。`)
+							}
+						})
 
-		new Setting(containerEl)
-			.setName('快速切换隐藏文件夹')
-			.setDesc('使用逗号分隔库内文件夹路径；这些文件夹下的文件不会出现在快速切换结果中。')
-			.addTextArea((text) =>
-				text
-					.setPlaceholder('Archive, Templates/private')
-					.setValue(this.plugin.settings.quickSwitcherHiddenFolders)
-					.onChange(async (value) => {
-						this.plugin.settings.quickSwitcherHiddenFolders = value
-						await this.plugin.saveSettings()
-					}),
-			)
+					return () => {
+						active = false
+					}
+				},
+			},
+			{
+				name: '修改文档时更新 updated 字段',
+				desc: '开启后，Markdown 文档内容修改时会更新 frontmatter 的 updated 字段；若原时间距离当前时间两分钟内则跳过，避免重复触发。',
+				control: { type: 'toggle', key: 'syncUpdatedFieldOnModify' },
+			},
+		]
+	}
 
-		new Setting(containerEl)
-			.setName('重命名时同步 frontmatter title')
-			.setDesc('开启后，Markdown 文档重命名时会把 frontmatter 的 title 更新为新的文件名，不修改正文一级标题。')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.syncFrontmatterTitleOnRename)
-					.onChange(async (value) => {
-						this.plugin.settings.syncFrontmatterTitleOnRename = value
-						await this.plugin.saveSettings()
-						this.display()
-					}),
-			)
+	// 设置页：为声明式控件提供当前值。
+	getControlValue(key: string): boolean | string | undefined {
+		switch (key) {
+			case 'enableFirstLineIndent':
+			case 'syncFrontmatterTitleOnRename':
+			case 'syncAssetFolderOnRename':
+			case 'syncUpdatedFieldOnModify':
+			case 'quickSwitcherHiddenFolders':
+				return this.plugin.settings[key]
+			default:
+				return undefined
+		}
+	}
 
-		if (shouldShowAssetFolderRenameSetting(this.plugin.settings)) {
-			const assetFolderSetting = new Setting(containerEl)
-				.setName('重命名时同步同名附件文件夹')
-				.setDesc(createAssetFolderRenameDesc('CAL插件未启用或配置不可用时不处理', 'normal'))
-				.addToggle((toggle) =>
-					toggle
-						.setValue(this.plugin.settings.syncAssetFolderOnRename)
-						.onChange(async (value) => {
-							this.plugin.settings.syncAssetFolderOnRename = value
-							await this.plugin.saveSettings()
-							this.display()
-						}),
-				)
-
-			if (shouldShowAssetFolderRenameDependencyStatus(this.plugin.settings)) {
-				Promise.all([
-					getAssetFolderRenameDependencyStatusText(this.plugin.app.vault, this.plugin.settings),
-					getAssetFolderRenameDependencyStatusTone(this.plugin.app.vault, this.plugin.settings),
-				]).then(([message, tone]) => {
-					assetFolderSetting.setDesc(createAssetFolderRenameDesc(message, tone))
-				}).catch(() => {
-					assetFolderSetting.setDesc(createAssetFolderRenameDesc('无法读取 Custom Attachment Location 配置，此开关不会生效。', 'error'))
-				})
-			}
+	// 设置页：按设置键类型写入，并在保存后刷新依赖项。
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		switch (key) {
+			case 'quickSwitcherHiddenFolders':
+				if (typeof value !== 'string') return
+				this.plugin.settings.quickSwitcherHiddenFolders = value
+				break
+			case 'enableFirstLineIndent':
+			case 'syncFrontmatterTitleOnRename':
+			case 'syncAssetFolderOnRename':
+			case 'syncUpdatedFieldOnModify':
+				if (typeof value !== 'boolean') return
+				this.plugin.settings[key] = value
+				break
+			default:
+				return
 		}
 
-		new Setting(containerEl)
-			.setName('修改文档时更新 updated 字段')
-			.setDesc('开启后，Markdown 文档内容修改时会更新 frontmatter 的 updated 字段；若原时间距离当前时间两分钟内则跳过，避免重复触发。')
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.syncUpdatedFieldOnModify)
-					.onChange(async (value) => {
-						this.plugin.settings.syncUpdatedFieldOnModify = value
-						await this.plugin.saveSettings()
-					}),
-			)
+		await this.plugin.saveSettings()
+		this.update()
 	}
 }

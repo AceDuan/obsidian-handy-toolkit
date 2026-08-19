@@ -21,11 +21,11 @@ async function loadModule() {
 			setup(build) {
 				build.onResolve({ filter: /^obsidian$/ }, () => ({ path: 'obsidian-stub', namespace: 'obsidian-stub' }))
 				build.onLoad({ filter: /.*/, namespace: 'obsidian-stub' }, () => ({
-					contents: [
-						'export class Plugin {}',
-						'export class PluginSettingTab { constructor(app, plugin) { this.app = app; this.plugin = plugin } }',
-						'export class Setting { constructor() {} setName() { return this } setDesc() { return this } addToggle() { return this } addTextArea() { return this } }',
-						'export function normalizePath(path) { return path.replace(/\\\\/g, "/").replace(/\\/+/g, "/") }',
+						contents: [
+							'export class Plugin {}',
+							'export class PluginSettingTab { constructor(app, plugin) { this.app = app; this.plugin = plugin; this.updateCount = 0 } update() { this.updateCount += 1 } display() {} }',
+							'export class Setting { constructor() {} setName() { return this } setDesc() { return this } addToggle() { return this } addTextArea() { return this } }',
+							'export function normalizePath(path) { return path.replace(/\\\\/g, "/").replace(/\\/+/g, "/") }',
 					].join('\n'),
 					loader: 'js',
 				}))
@@ -94,6 +94,78 @@ test('缺少配置目录时不回退 .obsidian', async () => {
 	assert.deepEqual(readPaths, [])
 })
 
+test('设置页使用声明式设置定义', async () => {
+	const { HandyToolkitSettingTab } = await loadModule()
+	const { tab } = createSettingTab(HandyToolkitSettingTab)
+
+	const definitions = tab.getSettingDefinitions()
+	const controls = definitions
+		.filter((item) => Boolean(item.control))
+		.map((item) => item.control.key)
+
+	assert.deepEqual(controls, [
+		'enableFirstLineIndent',
+		'quickSwitcherHiddenFolders',
+		'syncFrontmatterTitleOnRename',
+		'syncAssetFolderOnRename',
+		'syncUpdatedFieldOnModify',
+	])
+	assert.equal(Object.getOwnPropertyDescriptor(HandyToolkitSettingTab.prototype, 'display'), undefined)
+})
+
+test('声明式设置读写插件数据并刷新设置页', async () => {
+	const { HandyToolkitSettingTab } = await loadModule()
+	const { plugin, tab } = createSettingTab(HandyToolkitSettingTab)
+
+	assert.equal(tab.getControlValue('enableFirstLineIndent'), false)
+	assert.equal(tab.getControlValue('quickSwitcherHiddenFolders'), '')
+
+	await tab.setControlValue('enableFirstLineIndent', true)
+	await tab.setControlValue('quickSwitcherHiddenFolders', 'Archive, Templates/private')
+
+	assert.equal(plugin.settings.enableFirstLineIndent, true)
+	assert.equal(plugin.settings.quickSwitcherHiddenFolders, 'Archive, Templates/private')
+	assert.equal(plugin.saveCount, 2)
+	assert.equal(tab.updateCount, 2)
+})
+
+test('附件目录设置依赖声明式可见性', async () => {
+	const { HandyToolkitSettingTab } = await loadModule()
+	const { plugin, tab } = createSettingTab(HandyToolkitSettingTab)
+	const dependent = tab.getSettingDefinitions().find(({ name }) => name === '重命名时同步同名附件文件夹')
+	const status = tab.getSettingDefinitions().find(({ name }) => name === '附件位置状态')
+
+	assert.equal(dependent.visible(), false)
+	assert.equal(status.visible(), false)
+
+	plugin.settings.syncFrontmatterTitleOnRename = true
+	assert.equal(dependent.visible(), true)
+
+	plugin.settings.syncAssetFolderOnRename = true
+	assert.equal(status.visible(), true)
+})
+
+test('声明式状态项异步显示附件位置', async () => {
+	const { HandyToolkitSettingTab } = await loadModule()
+	const vault = createVault({
+		enabledPlugins: ['obsidian-custom-attachment-location'],
+		customAttachmentLocationSettings: { attachmentFolderPath: '00_assets/${noteFilename}' },
+	})
+	const { tab } = createSettingTab(HandyToolkitSettingTab, vault)
+	tab.plugin.settings.syncAssetFolderOnRename = true
+	const status = tab.getSettingDefinitions().find(({ name }) => name === '附件位置状态')
+	const descriptions = []
+
+	status.render({
+		setDesc: (description) => {
+			descriptions.push(description)
+		},
+	}, {})
+	await new Promise((resolve) => setImmediate(resolve))
+
+	assert.match(descriptions.at(-1), /当前附件位置：00_assets\/\$\{noteFilename\}/)
+})
+
 test('Custom Attachment Location 未安装时提示开关不会生效', async () => {
 	const { getAssetFolderRenameDependencyStatusText, getAssetFolderRenameDependencyStatusTone } = await loadModule()
 	const vault = createVault({
@@ -138,7 +210,7 @@ test('Custom Attachment Location 附件位置不含笔记名变量时提示开�
 	assert.equal(await getAssetFolderRenameDependencyStatusTone(vault, { syncAssetFolderOnRename: true }), 'error')
 })
 
-	function createVault({
+function createVault({
 		configDir = '.obsidian',
 		enabledPlugins,
 	customAttachmentLocationInstalled = true,
@@ -168,4 +240,24 @@ test('Custom Attachment Location 附件位置不含笔记名变量时提示开�
 			},
 		},
 	}
+}
+
+function createSettingTab(SettingTabClass, vault = null) {
+	const plugin = {
+		app: { vault },
+		settings: {
+			enableFirstLineIndent: false,
+			quickSwitcherHiddenFolders: '',
+			syncFrontmatterTitleOnRename: false,
+			syncAssetFolderOnRename: false,
+			syncUpdatedFieldOnModify: false,
+		},
+		saveCount: 0,
+		async saveSettings() {
+			this.saveCount += 1
+		},
+	}
+	const tab = new SettingTabClass(plugin.app, plugin)
+
+	return { plugin, tab }
 }
