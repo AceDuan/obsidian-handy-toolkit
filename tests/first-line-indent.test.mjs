@@ -45,6 +45,14 @@ test('源码模式首行缩进排除 frontmatter 整行', async () => {
 	assert.match(style, /div\.cm-line[\s\S]*:not\(:has\(\.cm-hmd-frontmatter\)\)[\s\S]*\{\s*text-indent: 2em;/)
 })
 
+test('源码模式首行缩进排除表格行', async () => {
+	const style = await readFile('styles.css', 'utf8')
+	const sourceIndentSelector = style.match(/^[^{]+div\.cm-line:not\(:is\(([^)]*)\)\)[^{]+\{/m)
+
+	assert.ok(sourceIndentSelector, '未找到源码模式首行缩进选择器')
+	assert.match(sourceIndentSelector[1], /(?:^|,)\.HyperMD-table-row(?:,|$)/)
+})
+
 test('frontmatter 不再使用负边距抵消首行缩进', async () => {
 	const style = await readFile('styles.css', 'utf8')
 
