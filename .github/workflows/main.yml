@@ -1,67 +1,52 @@
-name: Create Release
+name: Create Plugin Release
 
 on:
   push:
     tags:
-      - 'v*'  # This triggers the workflow when you push a tag starting with "v"
-  workflow_dispatch:
+      - '0.*'
+      - 'v*'
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
-      # Run your build step to generate files
-      - name: Build Plugin
-        run: |
-          npm install
-          npm run build # Replace with your actual build command
-          zip -r obsidian-handy-toolkit.zip main.js manifest.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Attest release assets
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
 
       - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
-          body: "Automatically created release for tag ${{ github.ref_name }}."
+          files: |
+            main.js
+            manifest.json
+            styles.css
           draft: false
           prerelease: false
-
-      # Upload the zip file
-      - name: Upload Release Asset (Zip)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./obsidian-handy-toolkit.zip  # Path to the .zip file
-          asset_name: obsidian-handy-toolkit.zip    # Name of the file in the release
-          asset_content_type: application/zip
-
-      # Upload main.js
-      - name: Upload Release Asset (main.js)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./main.js  # Path to the main.js file
-          asset_name: main.js    # Name of the file in the release
-          asset_content_type: application/javascript
-
-      # Upload manifest.json
-      - name: Upload Release Asset (manifest.json)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./manifest.json  # Path to the manifest.json file
-          asset_name: manifest.json    # Name of the file in the release
-          asset_content_type: application/json

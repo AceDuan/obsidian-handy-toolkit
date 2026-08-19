@@ -41,7 +41,11 @@ export function renderCustomAttachmentLocationTemplate(template: string, noteBas
 }
 
 export async function getCustomAttachmentLocationStatus(vault: CustomAttachmentLocationVaultLike): Promise<CustomAttachmentLocationStatus> {
-	const configDir = vault.configDir ?? '.obsidian'
+	if (typeof vault.configDir !== 'string' || vault.configDir.trim() === '') {
+		return { status: 'unreadable' }
+	}
+
+	const configDir = vault.configDir
 	const enabledPlugins = await readJsonFromVaultAdapter(vault, `${configDir}/community-plugins.json`)
 
 	if (!Array.isArray(enabledPlugins)) {

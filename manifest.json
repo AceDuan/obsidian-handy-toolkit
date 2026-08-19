@@ -1,9 +1,9 @@
 {
 	"id": "handy-toolkit",
 	"name": "Handy Toolkit",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"minAppVersion": "1.13.7",
-	"description": "Obsidian 阅读与编辑体验增强工具箱.",
+	"description": "增强阅读与编辑体验的工具箱.",
 	"author": "Ace Duan",
 	"isDesktopOnly": false
 }

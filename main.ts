@@ -8,7 +8,6 @@ import {
 // 首行缩进功能
 import {
 	cleanupIndentFeatureState,	// 卸载插件时移除首行缩进 body 状态类
-	injectIndentStyle,			// 注入首行缩进功能所需 CSS
 	processIndentParagraphs,		// 阅读模式渲染后处理段落和 <br> 拆行缩进
 	refreshMarkdownViews,		// 设置变化后刷新 Markdown 编辑器和预览
 	updateIndentFeatureState,	// 根据设置开关更新首行缩进启用状态
@@ -67,11 +66,10 @@ export default class ObsidianHandyToolkit extends Plugin {
 		refreshMarkdownViews(this.app)
 	}
 
-	// 插件入口：注册样式、渲染处理器、命令和设置页。
+	// 插件入口：注册渲染处理器、命令和设置页。
 	async onload() {
 		await this.loadSettings()
 
-		injectIndentStyle(this)
 		updateIndentFeatureState(this.settings.enableFirstLineIndent)
 
 		this.registerMarkdownPostProcessor((el) => processIndentParagraphs(el, this.settings.enableFirstLineIndent))

@@ -26,6 +26,8 @@ export function registerGitkeepCommand(plugin: Plugin) {
 				if (skipped > 0) messages.push(`已跳过 ${skipped} 个（已存在）`)
 				if (messages.length === 0) messages.push('无需操作')
 				new Notice(messages.join('，'))
+			}).catch((error: Error) => {
+				new Notice(`生成 .gitkeep 文件失败：${error.message}`)
 			})
 		},
 	})
