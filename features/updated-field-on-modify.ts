@@ -112,25 +112,6 @@ export function consumePendingEditorSave(
 	return now - pending.at <= PENDING_EDITOR_SAVE_TTL_MS
 }
 
-export async function syncUpdatedFieldWithProcessFrontMatter(
-	plugin: Pick<UpdatedFieldPlugin, 'app'>,
-	file: ModifiedFileLike,
-	now = new Date(),
-) {
-	let didUpdate = false
-
-	await plugin.app.fileManager.processFrontMatter(file as Parameters<typeof plugin.app.fileManager.processFrontMatter>[0], (frontmatter) => {
-		if (isUpdatedTimestampFresh(frontmatter.updated, now)) {
-			return
-		}
-
-		frontmatter.updated = formatUpdatedTimestamp(now)
-		didUpdate = true
-	})
-
-	return didUpdate
-}
-
 export async function syncUpdatedFieldForModifiedFile(
 	plugin: Pick<UpdatedFieldPlugin, 'app'>,
 	file: ModifiedFileLike,

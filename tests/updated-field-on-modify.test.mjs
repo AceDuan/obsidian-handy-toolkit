@@ -197,46 +197,10 @@ test('注册事件后 quick-preview 许可对应的 modify 会写 updated', asyn
 	assert.match(modifiedContent, /^updated: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/m)
 })
 
-test('Markdown 文件修改时把过期的 updated 写成当前时间', async () => {
-	const { syncUpdatedFieldWithProcessFrontMatter } = await loadModule()
-	const file = { extension: 'md', path: '测试.md' }
-	const frontmatter = { title: '测试', updated: '2026-05-22 09:00:00' }
-	const plugin = {
-		app: {
-			fileManager: {
-				async processFrontMatter(targetFile, callback) {
-					assert.equal(targetFile, file)
-					callback(frontmatter)
-				},
-			},
-		},
-	}
+test('生产路径不保留 processFrontMatter 辅助导出', async () => {
+	const module = await loadModule()
 
-	const didUpdate = await syncUpdatedFieldWithProcessFrontMatter(plugin, file, new Date(2026, 4, 22, 10, 1, 54))
-
-	assert.equal(didUpdate, true)
-	assert.deepEqual(frontmatter, { title: '测试', updated: '2026-05-22 10:01:54' })
-})
-
-test('Markdown 文件修改时保留两分钟内的 updated', async () => {
-	const { syncUpdatedFieldWithProcessFrontMatter } = await loadModule()
-	const file = { extension: 'md', path: '测试.md' }
-	const frontmatter = { title: '测试', updated: '2026-05-22 10:00:00' }
-	const plugin = {
-		app: {
-			fileManager: {
-				async processFrontMatter(targetFile, callback) {
-					assert.equal(targetFile, file)
-					callback(frontmatter)
-				},
-			},
-		},
-	}
-
-	const didUpdate = await syncUpdatedFieldWithProcessFrontMatter(plugin, file, new Date(2026, 4, 22, 10, 1, 54))
-
-	assert.equal(didUpdate, false)
-	assert.deepEqual(frontmatter, { title: '测试', updated: '2026-05-22 10:00:00' })
+	assert.equal(module.syncUpdatedFieldWithProcessFrontMatter, undefined)
 })
 
 test('Markdown 文件修改时保留 frontmatter 内的空行', async () => {

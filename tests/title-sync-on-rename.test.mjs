@@ -49,24 +49,10 @@ test('非 Markdown 文件重命名时不会同步 frontmatter title', async () =
 	assert.equal(shouldSyncTitleForRenamedFile(true, file), false)
 })
 
-test('Markdown 文件重命名时使用新文件名作为 frontmatter title', async () => {
-	const { syncFrontmatterTitleWithProcessFrontMatter } = await loadModule()
-	const file = { extension: 'md', basename: '新标题' }
-	const frontmatter = { title: '旧标题', tags: ['test'] }
-	const plugin = {
-		app: {
-			fileManager: {
-				async processFrontMatter(targetFile, callback) {
-					assert.equal(targetFile, file)
-					callback(frontmatter)
-				},
-			},
-		},
-	}
+test('生产路径不保留 processFrontMatter 辅助导出', async () => {
+	const module = await loadModule()
 
-	await syncFrontmatterTitleWithProcessFrontMatter(plugin, file)
-
-	assert.deepEqual(frontmatter, { title: '新标题', tags: ['test'] })
+	assert.equal(module.syncFrontmatterTitleWithProcessFrontMatter, undefined)
 })
 
 test('Markdown 文件重命名时保留 frontmatter 内的空行', async () => {

@@ -24,7 +24,7 @@ async function readJsonFromVaultAdapter(vault: CustomAttachmentLocationVaultLike
 	}
 
 	try {
-		return JSON.parse(await vault.adapter.read(normalizePath(path)))
+		return JSON.parse(await vault.adapter.read(normalizePath(path))) as unknown
 	} catch {
 		return null
 	}
@@ -52,7 +52,8 @@ export async function getCustomAttachmentLocationStatus(vault: CustomAttachmentL
 		return { status: 'unreadable' }
 	}
 
-	if (!enabledPlugins.includes(CUSTOM_ATTACHMENT_LOCATION_PLUGIN_ID)) {
+	const enabledPluginIds = enabledPlugins as unknown[]
+	if (!enabledPluginIds.includes(CUSTOM_ATTACHMENT_LOCATION_PLUGIN_ID)) {
 		const manifestPath = `${configDir}/plugins/${CUSTOM_ATTACHMENT_LOCATION_PLUGIN_ID}/manifest.json`
 		if (vault.adapter?.exists) {
 			try {
@@ -66,7 +67,9 @@ export async function getCustomAttachmentLocationStatus(vault: CustomAttachmentL
 	}
 
 	const settings = await readJsonFromVaultAdapter(vault, `${configDir}/plugins/${CUSTOM_ATTACHMENT_LOCATION_PLUGIN_ID}/data.json`)
-	const template = typeof settings?.attachmentFolderPath === 'string' ? settings.attachmentFolderPath : ''
+	const settingsRecord = settings && typeof settings === 'object' ? settings as Record<string, unknown> : null
+	const attachmentFolderPath = settingsRecord?.attachmentFolderPath
+	const template = typeof attachmentFolderPath === 'string' ? attachmentFolderPath : ''
 	if (!template) {
 		return { status: 'unreadable' }
 	}

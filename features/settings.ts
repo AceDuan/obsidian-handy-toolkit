@@ -26,6 +26,34 @@ export const DEFAULT_SETTINGS: HandyToolkitSettings = {
 	syncUpdatedFieldOnModify: false,
 }
 
+// 设置管理：把插件数据存储的未知 JSON 收敛为强类型设置。
+export function mergeStoredSettings(defaults: HandyToolkitSettings, stored: unknown): HandyToolkitSettings {
+	const merged = { ...defaults }
+
+	if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+		return merged
+	}
+
+	const record = stored as Record<string, unknown>
+	if (typeof record.enableFirstLineIndent === 'boolean') {
+		merged.enableFirstLineIndent = record.enableFirstLineIndent
+	}
+	if (typeof record.quickSwitcherHiddenFolders === 'string') {
+		merged.quickSwitcherHiddenFolders = record.quickSwitcherHiddenFolders
+	}
+	if (typeof record.syncFrontmatterTitleOnRename === 'boolean') {
+		merged.syncFrontmatterTitleOnRename = record.syncFrontmatterTitleOnRename
+	}
+	if (typeof record.syncAssetFolderOnRename === 'boolean') {
+		merged.syncAssetFolderOnRename = record.syncAssetFolderOnRename
+	}
+	if (typeof record.syncUpdatedFieldOnModify === 'boolean') {
+		merged.syncUpdatedFieldOnModify = record.syncUpdatedFieldOnModify
+	}
+
+	return merged
+}
+
 type HandyToolkitSettingsPlugin = Plugin & {
 	settings: HandyToolkitSettings
 	saveSettings(): Promise<void>
