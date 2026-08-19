@@ -1,4 +1,4 @@
-import { App, getLanguage, Notice, Plugin, TFile } from 'obsidian'
+import { App, getLanguage, MarkdownView, Notice, Plugin, TFile } from 'obsidian'
 
 export type FoldRange = {
 	from: number
@@ -95,8 +95,7 @@ function collapseActiveFileProperties(app: App) {
 	const { handledAny } = collapseProperties(app, filePath)
 
 	if (!handledAny) {
-		const activeLeaf = app.workspace.activeLeaf
-		const activeView = activeLeaf?.view as InternalMarkdownView | undefined
+		const activeView = app.workspace.getActiveViewOfType(MarkdownView) as InternalMarkdownView | null
 		if (activeView?.getViewType?.() !== 'markdown') {
 			return
 		}

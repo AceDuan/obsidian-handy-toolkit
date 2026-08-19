@@ -21,9 +21,10 @@ async function loadModule() {
 			setup(build) {
 				build.onResolve({ filter: /^obsidian$/ }, () => ({ path: 'obsidian-stub', namespace: 'obsidian-stub' }))
 				build.onLoad({ filter: /.*/, namespace: 'obsidian-stub' }, () => ({
-					contents: [
-						'export class App {}',
-						'export class Plugin {}',
+						contents: [
+							'export class App {}',
+							'export class MarkdownView {}',
+							'export class Plugin {}',
 						'export function getLanguage() { return globalThis.__obsidianLanguage ?? "en" }',
 						'export class Notice { constructor(message) { globalThis.__obsidianNotices.push(message) } }',
 					].join('\n'),
@@ -42,8 +43,9 @@ function createPlugin({
 	files = [],
 	frontmatterPaths = [],
 	foldManager,
-	leaves = [],
-} = {}) {
+		leaves = [],
+		activeView = null,
+	} = {}) {
 	globalThis.__obsidianLanguage = language
 	globalThis.__obsidianNotices = []
 	const commands = []
@@ -65,7 +67,7 @@ function createPlugin({
 		workspace: {
 			getLeavesOfType: () => leaves,
 			getActiveFile: () => null,
-			activeLeaf: null,
+			getActiveViewOfType: () => activeView,
 		},
 		commands: { executeCommandById: () => true },
 	}
@@ -86,6 +88,26 @@ test('空记录生成属性折叠并使用当前行数', async () => {
 		folds: [{ from: 0, to: 0 }],
 		lines: 12,
 	})
+})
+
+test('属性折叠回退使用当前活动 Markdown 视图', async () => {
+	const { registerCollapsePropertiesCommand } = await loadModule()
+	const executedCommands = []
+	const activeView = {
+		file: { path: '当前.md' },
+		getViewType: () => 'markdown',
+	}
+	const { commands, plugin } = createPlugin({ activeView })
+	plugin.app.workspace.getActiveFile = () => ({ path: '当前.md' })
+	plugin.app.commands.executeCommandById = (commandId) => {
+		executedCommands.push(commandId)
+		return true
+	}
+	registerCollapsePropertiesCommand(plugin)
+
+	commands.find(({ id }) => id === 'collapse-properties-in-current-file').callback()
+
+	assert.deepEqual(executedCommands, ['editor:toggle-fold-properties'])
 })
 
 test('保留现有正文折叠和原行数', async () => {

@@ -67,12 +67,31 @@ test('附件文件夹同步关闭时显示白色 CAL 默认提示', async () => 
 test('附件文件夹同步依赖可用时显示当前附件位置', async () => {
 	const { getAssetFolderRenameDependencyStatusText, getAssetFolderRenameDependencyStatusTone } = await loadModule()
 	const vault = createVault({
+		configDir: '.vault-config',
 		enabledPlugins: ['obsidian-custom-attachment-location'],
 		customAttachmentLocationSettings: { attachmentFolderPath: '00_assets/${noteFilename}' },
 	})
 
 	assert.equal(await getAssetFolderRenameDependencyStatusText(vault, { syncAssetFolderOnRename: true }), '当前附件位置：00_assets/${noteFilename}')
 	assert.equal(await getAssetFolderRenameDependencyStatusTone(vault, { syncAssetFolderOnRename: true }), 'success')
+})
+
+test('缺少配置目录时不回退 .obsidian', async () => {
+	const { getAssetFolderRenameDependencyStatusText } = await loadModule()
+	const readPaths = []
+	const vault = {
+		adapter: {
+			read: async (path) => {
+				readPaths.push(path)
+				throw new Error('不应读取配置')
+			},
+		},
+	}
+
+	const status = await getAssetFolderRenameDependencyStatusText(vault, { syncAssetFolderOnRename: true })
+
+	assert.equal(status, '无法读取 Custom Attachment Location 配置，此开关不会生效。')
+	assert.deepEqual(readPaths, [])
 })
 
 test('Custom Attachment Location 未安装时提示开关不会生效', async () => {
@@ -119,24 +138,25 @@ test('Custom Attachment Location 附件位置不含笔记名变量时提示开�
 	assert.equal(await getAssetFolderRenameDependencyStatusTone(vault, { syncAssetFolderOnRename: true }), 'error')
 })
 
-function createVault({
-	enabledPlugins,
+	function createVault({
+		configDir = '.obsidian',
+		enabledPlugins,
 	customAttachmentLocationInstalled = true,
 	customAttachmentLocationSettings = {},
 	shouldFailReadingSettings = false,
 }) {
 	return {
-		configDir: '.obsidian',
+		configDir,
 		adapter: {
 			async exists(path) {
-				return path === '.obsidian/plugins/obsidian-custom-attachment-location/manifest.json' && customAttachmentLocationInstalled
+				return path === `${configDir}/plugins/obsidian-custom-attachment-location/manifest.json` && customAttachmentLocationInstalled
 			},
 			async read(path) {
-				if (path === '.obsidian/community-plugins.json') {
+				if (path === `${configDir}/community-plugins.json`) {
 					return JSON.stringify(enabledPlugins)
 				}
 
-				if (path === '.obsidian/plugins/obsidian-custom-attachment-location/data.json') {
+				if (path === `${configDir}/plugins/obsidian-custom-attachment-location/data.json`) {
 					if (shouldFailReadingSettings) {
 						throw new Error('读不到配置')
 					}
