@@ -1,4 +1,4 @@
-body.obsidian-handy-toolkit-indent-enabled .workspace-leaf-content[data-type="markdown"] .markdown-source-view.mod-cm6 div.cm-line:not(:is(.hr,.HyperMD-header,.HyperMD-quote,.HyperMD-list-line,.HyperMD-codeblock)):not(:has(.cm-hmd-frontmatter)) {
+body.obsidian-handy-toolkit-indent-enabled .workspace-leaf-content[data-type="markdown"] .markdown-source-view.mod-cm6 div.cm-line:not(:is(.hr,.HyperMD-header,.HyperMD-quote,.HyperMD-list-line,.HyperMD-codeblock,.HyperMD-table-row)):not(:has(.cm-hmd-frontmatter)) {
 	text-indent: 2em;
 }
 
